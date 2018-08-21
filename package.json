@@ -18,6 +18,6 @@
   "homepage": "https://github.com/LMCv3/ami-update#readme",
   "dependencies": {
     "aws-sdk": "^2.297.0",
-    "optimist": "^0.6.1"
+    "commander": "^2.17.1"
   }
 }

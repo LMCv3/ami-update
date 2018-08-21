@@ -4,9 +4,20 @@
  */
 var AWS = require('aws-sdk');
 var region = 'us-east-1';
-const args = require('optimist').argv;
+const program = require('commander');
 
 // Get our variables / flags in order, ask if needed
+program
+	.version('1.0.0')
+	.option('-i, --ip-address', 'Source Instance IP')
+	.option('-r, --region', 'AWS Region')
+	.option('-g, --group', 'AutoScaling Group Name')
+	.parse(process.argv);
+if (!program.region){
+	
+} else {
+	region = program.region;
+}
 var ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
 
 // Make sure we have legit creds available to us
