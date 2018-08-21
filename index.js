@@ -2,10 +2,10 @@
  * Takes a server image, infers the autoscalers and target groups associated and updates all the things for you
  * Usage: index.js [<ip-address>] [-r <region>] [-i <ip-address>] [-g <scaling-group-name>]
  */
-var AWS = require('aws-sdk');
-var region = 'us-east-1';
+const AWS = require('aws-sdk');
 const program = require('commander');
 const inquirer = require('inquirer');
+let region = 'us-east-1';
 
 // Get our variables / flags in order, ask if needed
 program
@@ -15,16 +15,17 @@ program
 	.option('-g, --group', 'AutoScaling Group Name')
 	.parse(process.argv);
 if (!program.region){
-	
+
 } else {
 	region = program.region;
 }
-var ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
+const ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
+const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
 
 // Make sure we have legit creds available to us
 ec2.describeAvailabilityZones({}, function(err, data){
 	if (err) {
-		console.log('Please check your AWS Credentials are set according to https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-shared.html');
+		console.error('Please check your AWS Credentials are set according to https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-shared.html');
 		process.exit(1);
 	} else {
 		console.log(data);
@@ -32,6 +33,13 @@ ec2.describeAvailabilityZones({}, function(err, data){
 })
 // Make sure our creds access all the things we need to access
 // Which AutoScaling Group we talkin' bout here?
+autoscaling.describeAutoScalingGroups({}, function(err, data) {
+	if (err){
+		console.log(err, err.stack);
+	} else {
+		console.log(data);
+	}
+})
 // Which Target Group we talkin' bout here?
 // Pick a server to use for the AMI
 // Pick a Launch Config to clone
