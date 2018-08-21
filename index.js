@@ -15,34 +15,69 @@ program
 	.option('-g, --group', 'AutoScaling Group Name')
 	.parse(process.argv);
 if (!program.region){
+	inquirer.prompt([
+	{
+		type: 'list',
+		name: 'region',
+		message: 'Which region shall we use?',
+		choices: [
+			'us-east-1',
+			'us-east-2',
+			'us-west-1',
+			'us-west-2',
+			'ap-south-1',
+			'ap-northeast-1',
+			'ap-northeast-2',
+			'ap-southeast-1',
+			'ap-southeast-2',
+			'ca-central-1',
+			'eu-central-1',
+			'eu-west-1',
+			'eu-west-2',
+			'eu-west-3',
+			'sa-east-1'
+		]
+	}
+	])
+	.then(answers => {
+		region = answers.region;
 
+		if (!program.group){
+			// Get the names of the AutoScaling Groups in this region
+			const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
+			autoscaling.describeAutoScalingGroups({}, function(err, data) {
+				if (err){
+					console.error(err, err.stack);
+					console.error('Please check your AWS Credentials are set!');
+					process.exit(1);
+				} else {
+					let asGroups = [];
+					for (const group of data.AutoScalingGroups) {
+						asGroups.push(group.AutoScalingGroupName);
+					}
+					inquirer.prompt([
+						{
+							type: 'list',
+							name: 'asgroup',
+							message: 'Choose the AutoScaling Group to update',
+							choices: asGroups
+						}
+					]).then(answers => {
+						const ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
+						// Get the Current Launch Config
+						// Get the TargetGroup Name
+						// Pick a server to use for the AMI
+					});
+				}
+			})
+			
+		}
+	});
 } else {
 	region = program.region;
 }
-const ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
-const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
 
-// Make sure we have legit creds available to us
-ec2.describeAvailabilityZones({}, function(err, data){
-	if (err) {
-		console.error('Please check your AWS Credentials are set according to https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/loading-node-credentials-shared.html');
-		process.exit(1);
-	} else {
-		console.log(data);
-	}
-})
-// Make sure our creds access all the things we need to access
-// Which AutoScaling Group we talkin' bout here?
-autoscaling.describeAutoScalingGroups({}, function(err, data) {
-	if (err){
-		console.log(err, err.stack);
-	} else {
-		console.log(data);
-	}
-})
-// Which Target Group we talkin' bout here?
-// Pick a server to use for the AMI
-// Pick a Launch Config to clone
+
 // Scale up, if needed
 // Maybe apt-get update && apt-get upgrade?
 // Make the AMI
