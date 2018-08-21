@@ -4,6 +4,7 @@
  */
 var AWS = require('aws-sdk');
 var region = 'us-east-1';
+const args = require('optimist').argv;
 
 // Get our variables / flags in order, ask if needed
 var ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
