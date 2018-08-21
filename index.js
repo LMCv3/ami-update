@@ -5,6 +5,7 @@
 var AWS = require('aws-sdk');
 var region = 'us-east-1';
 const program = require('commander');
+const inquirer = require('inquirer');
 
 // Get our variables / flags in order, ask if needed
 program
