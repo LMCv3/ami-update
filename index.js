@@ -13,7 +13,7 @@ var ec2 = new AWS.EC2();
 // Pick a server to use for the AMI
 // Pick a Launch Config to clone
 // Scale up, if needed
-// Take the AMI
+// Make the AMI
 // Make the Launch Config
 // Swap out the Launch Config on the AS Group
 // Once the AMI is finished
