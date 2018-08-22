@@ -64,9 +64,26 @@ if (!program.region){
 						}
 					]).then(answers => {
 						const ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
+						let oldLaunchConfig = '';
+						let targetGroupARN = '';
+						let instances = [];
 						// Get the Current Launch Config
-						// Get the TargetGroup Name
-						// Pick a server to use for the AMI
+						autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [ answers.asgroup ]}, function(err, data) {
+							if (err) {
+								console.error(err,err.stack);
+								process.exit(1);
+							} else {
+								// Get the TargetGroup Name
+								targetGroupARN = data.AutoScalingGroups[0].TargetGroupARNs[0];
+								oldLaunchConfig = data.AutoScalingGroups[0].LaunchConfigurationName;
+								instances = data.AutoScalingGroups[0].Instances;
+								console.log('Target Group ARN: ' + targetGroupARN);
+								console.log('oldLaunchConfig: ' + oldLaunchConfig);
+								console.log('Instances: ',instances);
+
+								// Pick a server to use for the AMI
+							}
+						});
 					});
 				}
 			})
