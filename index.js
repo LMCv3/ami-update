@@ -39,13 +39,13 @@ if (!program.region){
 		]
 	}
 	])
-	.then(answers => {
+	.then(async answers => {
 		region = answers.region;
 
 		if (!program.group){
 			// Get the names of the AutoScaling Groups in this region
 			const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
-			autoscaling.describeAutoScalingGroups({}, function(err, data) {
+			autoscaling.describeAutoScalingGroups({}, async function(err, data) {
 				if (err){
 					console.error(err, err.stack);
 					console.error('Please check your AWS Credentials are set!');
@@ -62,13 +62,13 @@ if (!program.region){
 							message: 'Choose the AutoScaling Group to update',
 							choices: asGroups
 						}
-					]).then(answers => {
+					]).then(async answers => {
 						const ec2 = new AWS.EC2({region: region, apiVersion: '2016-11-15'});
 						let oldLaunchConfig = '';
 						let targetGroupARN = '';
 						let instances = [];
 						// Get the Current Launch Config
-						autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [ answers.asgroup ]}, function(err, data) {
+						autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [ answers.asgroup ]}, async function(err, data) {
 							if (err) {
 								console.error(err,err.stack);
 								process.exit(1);
