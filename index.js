@@ -67,6 +67,7 @@ if (!program.region){
 						let oldLaunchConfig = '';
 						let targetGroupARN = '';
 						let instances = [];
+						let startingMin = 0;
 						// Get the Current Launch Config
 						autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [ answers.asgroup ]}, async function(err, data) {
 							if (err) {
@@ -77,11 +78,36 @@ if (!program.region){
 								targetGroupARN = data.AutoScalingGroups[0].TargetGroupARNs[0];
 								oldLaunchConfig = data.AutoScalingGroups[0].LaunchConfigurationName;
 								instances = data.AutoScalingGroups[0].Instances;
+								startingMin = data.AutoScalingGroups[0].MinSize;
+								AMImaster = '';
+								if (startingMin < 2) {
+									console.log('Adding scale...');
+									// change AS Group Min to 2
+									AMImaster = instances[0].InstanceId
+								} else {
+									// which instance should we use?
+									let instanceChoices = [];
+									for (const instance of instances) {
+										instanceChoices.push(instance.InstanceId);
+									}
+									await inquirer.prompt([
+										{
+											type: 'list',
+											name: 'instanceid',
+											message: 'Which Instance should we image for scaling?',
+											choices: instanceChoices
+										}
+									]).then(async answers => {
+										AMImaster = answers.instanceid;
+										return Promise.resolve(1);
+									});
+								}
+								console.log('AMI Master: ' + AMImaster);
 								console.log('Target Group ARN: ' + targetGroupARN);
 								console.log('oldLaunchConfig: ' + oldLaunchConfig);
 								console.log('Instances: ',instances);
 
-								// Pick a server to use for the AMI
+								// (Be sure to tag "client" on both AMI and Snapshot)
 							}
 						});
 					});
