@@ -127,13 +127,18 @@ if (!program.region){
  */
 async function scaleToTwo(asGroup){
 	// adjust the ASGroup min to 2
-	let inServiceInstances = [];
-	for (const instance of instances) {
-		if (instance.LifecycleState == 'InService') {
-			inServiceInstances.push(instance);
+	
+	var desired = await autoscaling.describeAutoScalingGroups({asGroup.AutoScalingGroupName}, async function (err, data) {
+		if (err) {
+			console.error(err);
+			Promise.reject(err);
+			process.exit();
+		} else {
+			return Promise.resolve(data.AutoScalingGroups[0].DesiredCapacity);
 		}
-	}
-	if (inServiceInstances.length < 2){
+	});
+	if (desired < 2){
+		console.log('Increasing Desired Capacity to 2...');
 		await autoscaling.setDesiredCapacity({
 			AutoScalingGroupName: asGroup.AutoScalingGroupName,
 			DesiredCapacity: 2,
@@ -144,11 +149,26 @@ async function scaleToTwo(asGroup){
 				Promise.reject(err);
 				process.exit();
 			} else {
+				Promise.resolve(true);
 			}
-		});		
+		});
 	}
+	console.log('Increasing MinSize to 2...');
+	await autoscaling.updateAutoScalingGroup({
+		AutoScalingGroupName: asGroup.AutoScalingGroupName,
+		MinSize: 2
+	}, function (err, data) {
+		if (err) {
+			console.log(err);
+			Promise.reject(err);
+			process.exit();
+		} else {
+			Promise.resolve(true);
+		}
+	});
 	
-	// wait until instances with LifecycleState = InService are at least 2
+	console.log('Waiting for Scaling to complete...');
+
 	// return promise
 }
 
