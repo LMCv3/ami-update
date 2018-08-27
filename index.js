@@ -84,6 +84,7 @@ if (!program.region){
 									console.log('Adding scale...');
 									// change AS Group Min to 2
 									AMImaster = instances[0].InstanceId
+									// wait until instances with LifecycleState = InService are at least 2 before proceeding
 								} else {
 									// which instance should we use?
 									let instanceChoices = [];
@@ -119,7 +120,37 @@ if (!program.region){
 } else {
 	region = program.region;
 }
-
+/**
+ * For an AutoScaling Group, adjusts the "min" (and "desired," if necessary) to 2.
+ * @param  object 	asGroup 	the AutoScalingGroup Object as returned by describeAutoScalingGroups
+ * @return Promise	bool		True / resolve or false / reject when the scaling has finished
+ */
+async function scaleToTwo(asGroup){
+	// adjust the ASGroup min to 2
+	let inServiceInstances = [];
+	for (const instance of instances) {
+		if (instance.LifecycleState == 'InService') {
+			inServiceInstances.push(instance);
+		}
+	}
+	if (inServiceInstances.length < 2){
+		await autoscaling.setDesiredCapacity({
+			AutoScalingGroupName: asGroup.AutoScalingGroupName,
+			DesiredCapacity: 2,
+			HonorCooldown: false
+		}, async function(err, data) {
+			if (err) {
+				console.error(err);
+				Promise.reject(err);
+				process.exit();
+			} else {
+			}
+		});		
+	}
+	
+	// wait until instances with LifecycleState = InService are at least 2
+	// return promise
+}
 
 // Scale up, if needed
 // Maybe apt-get update && apt-get upgrade?
