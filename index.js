@@ -171,7 +171,24 @@ async function scaleToTwo(asGroup){
 
 	// return promise
 }
-
+/**
+ * Checks an AutoScaling Group's instances and returns how many are "in service"
+ * @param 	Object	asGroup 	the AutoScalingGroup Object as returned by describeAutoScalingGroups
+ * @return 	int        			Number of instances "In Service" assigned to the AutoScaling Group
+ */
+async function howManyInService(asGroup){
+	return await autoscaling.describeAutoScalingGroups({asGroup.AutoScalingGroupName}, async function (err, data) {
+		if (err) return Promise.reject(err);
+		const dataset = data.AutoScalingGroups[0].Instances;
+		let num = [];
+		for (const instance of dataset) {
+			if (instance.LifecycleState == 'InService') {
+				num.push(instance);
+			}
+		}
+		return Promise.resolve(num.length);
+	});
+}
 // Scale up, if needed
 // Maybe apt-get update && apt-get upgrade?
 // Make the AMI
