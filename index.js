@@ -86,6 +86,7 @@ if (!program.region){
 									// change AS Group Min to 2
 									AMImaster = instances[0].InstanceId
 									// wait until instances with LifecycleState = InService are at least 2 before proceeding
+									await scaleToTwo(data.AutoScalingGroups[0]);
 								} else {
 									// which instance should we use?
 									let instanceChoices = [];
@@ -129,7 +130,7 @@ if (!program.region){
 async function scaleToTwo(asGroup){
 	// adjust the ASGroup min to 2
 	
-	var desired = await autoscaling.describeAutoScalingGroups({asGroup.AutoScalingGroupName}, async function (err, data) {
+	var desired = await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
 		if (err) {
 			console.error(err);
 			Promise.reject(err);
@@ -185,7 +186,7 @@ async function scaleToTwo(asGroup){
  * @return 	int        			Number of instances "In Service" assigned to the AutoScaling Group
  */
 async function howManyInService(asGroup){
-	return await autoscaling.describeAutoScalingGroups({asGroup.AutoScalingGroupName}, async function (err, data) {
+	return await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
 		if (err) return Promise.reject(err);
 		const dataset = data.AutoScalingGroups[0].Instances;
 		let num = [];
