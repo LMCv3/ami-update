@@ -168,7 +168,7 @@ async function scaleToTwo(asGroup){
 			process.exit();
 		} else {
 			console.log('Waiting for Scaling to complete...');
-			waitUntil().interval(60000).times(60).condition(function(){
+			waitUntil().interval(1000*30).times(60).condition(function(){
 				if (howManyInService(asGroup.AutoScalingGroupName) >= 2) {
 					return true;
 				} else {
