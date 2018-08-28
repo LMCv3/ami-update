@@ -164,13 +164,20 @@ async function scaleToTwo(asGroup){
 			Promise.reject(err);
 			process.exit();
 		} else {
-			Promise.resolve(true);
+			console.log('Waiting for Scaling to complete...');
+			waitUntil().interval(60000).times(60).condition(function(){
+				if (howManyInService(asGroup.AutoScalingGroupName) >= 2) {
+					return true;
+				} else {
+					return false;
+				}
+			}).done(function(result){
+				console.log(asGroup.AutoScalingGroupName + ' now has at least 2 instances in service.');
+				Promise.resolve(true);
+			});
 		}
 	});
-	
-	console.log('Waiting for Scaling to complete...');
-
-	// return promise
+	return Promise.resolve(true);
 }
 /**
  * Checks an AutoScaling Group's instances and returns how many are "in service"
