@@ -130,6 +130,8 @@ if (!program.region){
 async function scaleToTwo(asGroup){
 	// adjust the ASGroup min to 2
 	
+	console.log('Scaling '+ asGroup.AutoScalingGroupName + ' to 2...');
+	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
 	var desired = await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
 		if (err) {
 			console.error(err);
@@ -182,19 +184,23 @@ async function scaleToTwo(asGroup){
 }
 /**
  * Checks an AutoScaling Group's instances and returns how many are "in service"
- * @param 	Object	asGroup 	the AutoScalingGroup Object as returned by describeAutoScalingGroups
+ * @param 	string	asGroup 	the AutoScalingGroup Name, from the Object: asGroup.AutoScalingGroupName
  * @return 	int        			Number of instances "In Service" assigned to the AutoScaling Group
  */
 async function howManyInService(asGroup){
-	return await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
+	console.log('checking ' + asGroup);
+	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
+	return await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
 		if (err) return Promise.reject(err);
 		const dataset = data.AutoScalingGroups[0].Instances;
 		let num = [];
+		console.log(dataset);
 		for (const instance of dataset) {
 			if (instance.LifecycleState == 'InService') {
 				num.push(instance);
 			}
 		}
+		console.log('Found '+ num.length+' InService instances');
 		return Promise.resolve(num.length);
 	});
 }
