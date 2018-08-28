@@ -5,6 +5,7 @@
 const AWS = require('aws-sdk');
 const program = require('commander');
 const inquirer = require('inquirer');
+const waitUntil = require('wait-until');
 let region = 'us-east-1';
 
 // Get our variables / flags in order, ask if needed

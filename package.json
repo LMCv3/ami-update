@@ -19,6 +19,7 @@
   "dependencies": {
     "aws-sdk": "^2.297.0",
     "commander": "^2.17.1",
-    "inquirer": "^6.1.0"
+    "inquirer": "^6.1.0",
+    "wait-until": "0.0.2"
   }
 }
