@@ -81,53 +81,66 @@ if (!program.region){
 								startingMin = data.AutoScalingGroups[0].MinSize;
 								AMImaster = '';
 								// Pick new TargetGroup & AMI Names
-								inquirer.prompt([
-								{
-									type: 'input',
-									name: 'newLaunchConfig',
-									message: 'Target Group Name (previous: ' + oldLaunchConfig + ')'
-								}]).then(async answers => {
-									const newLaunchConfig = answers.newLaunchConfig;
-									inquirer.prompt([
+								let questions = [
+									{
+										type: 'input',
+										name: 'newLaunchConfig',
+										message: 'Target Group Name (previous: ' + oldLaunchConfig + ')'
+									},
 									{
 										type: 'input',
 										name: 'newAMI',
 										message: 'AMI name (previous: ' + ')'
-									}]).then(async answers => {
-										const newAMIname = answers.newAMI;
-										if (startingMin < 2) {
-											console.log('Adding scale...');
-											// change AS Group Min to 2
-											AMImaster = instances[0].InstanceId
-											// wait until instances with LifecycleState = InService are at least 2 before proceeding
-											await scaleToTwo(data.AutoScalingGroups[0]);
-										} else {
-											// which instance should we use?
-											let instanceChoices = [];
-											for (const instance of instances) {
-												instanceChoices.push(instance.InstanceId);
-											}
-											await inquirer.prompt([
-												{
-													type: 'list',
-													name: 'instanceid',
-													message: 'Which Instance should we image for scaling?',
-													choices: instanceChoices
-												}
-											]).then(async answers => {
-												AMImaster = answers.instanceid;
-												return Promise.resolve(1);
-											});
-										}
-										console.log('Ready to reimage by:');
-										console.log('Make new AMI ('+ newAMIname+') of instance ' + AMImaster);
-										console.log('Make a new Launch Config ('+newLaunchConfig+') from old config '+oldLaunchConfig);
-										console.log('Then updating AutoScalingGroup ' + data.AutoScalingGroups[0].AutoScalingGroupName);
-										console.log('And shutting down old images');
+									},
+									{
+										type: 'input',
+										name: 'amiDescription',
+										message: 'AMI Description'
+									}
+								];
+								if (startingMin >= 2) {
+									// which instance should we use?
+									let instanceChoices = [];
+									for (const instance of instances) {
+										instanceChoices.push(instance.InstanceId);
+									}
+									questions.push({
+										type: 'list',
+										name: 'instanceid',
+										message: 'Which Instance should we image for scaling?',
+										choices: instanceChoices
 									})
-								})
-
-
+								}
+								inquirer.prompt(questions).then(async answers => {
+									const newLaunchConfig = answers.newLaunchConfig;
+									const newAMIname = answers.newAMI;
+									const newAMIdescription = answers.amiDescription;
+									if (startingMin < 2) {
+										AMImaster = instances[0].InstanceId
+										console.log('Adding scale...');
+										// change AS Group Min to 2
+										// wait until instances with LifecycleState = InService are at least 2 before proceeding
+										await scaleToTwo(data.AutoScalingGroups[0]);
+									} else {
+										AMImaster = answers.instanceid;
+									}
+									console.log('Ready to reimage by:');
+									console.log('Make new AMI ('+ newAMIname+', '+newAMIdescription+') of instance ' + AMImaster);
+									console.log('Make a new Launch Config ('+newLaunchConfig+') from old config '+oldLaunchConfig);
+									console.log('Then updating AutoScalingGroup ' + data.AutoScalingGroups[0].AutoScalingGroupName);
+									console.log('And shutting down old images');
+									inquirer.prompt([{
+										type: 'confirm',
+										name: 'readySetGO',
+										message: 'Are you ready to continue?',
+										deafult: false
+									}]).then(async answers => {
+										if (!answers.readySetGO){
+											console.log('Exiting...');
+											Process.exit();
+										}
+									});
+								});
 								// (Be sure to tag "client" on both AMI and Snapshot)
 							}
 						});
