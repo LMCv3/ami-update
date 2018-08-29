@@ -117,10 +117,6 @@ if (!program.region){
 									const newAMIdescription = answers.amiDescription;
 									if (startingMin < 2) {
 										AMImaster = instances[0].InstanceId
-										console.log('Adding scale...');
-										// change AS Group Min to 2
-										// wait until instances with LifecycleState = InService are at least 2 before proceeding
-										await scaleToTwo(data.AutoScalingGroups[0]);
 									} else {
 										AMImaster = answers.instanceid;
 									}
@@ -138,6 +134,12 @@ if (!program.region){
 										if (!answers.readySetGO){
 											console.log('Exiting...');
 											Process.exit();
+										}
+										if (startingMin < 2) {
+											console.log('Adding scale...');
+											// change AS Group Min to 2
+											// wait until instances with LifecycleState = InService are at least 2 before proceeding
+											await scaleToTwo(data.AutoScalingGroups[0]);
 										}
 									});
 								});
