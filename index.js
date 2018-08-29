@@ -85,17 +85,17 @@ if (!program.region){
 									{
 										type: 'input',
 										name: 'newLaunchConfig',
-										message: 'Target Group Name (previous: ' + oldLaunchConfig + ')'
+										message: 'Target Group Name (previous: ' + oldLaunchConfig + '):'
 									},
 									{
 										type: 'input',
 										name: 'newAMI',
-										message: 'AMI name (previous: ' + ')'
+										message: 'AMI name (previous: ' + '):'
 									},
 									{
 										type: 'input',
 										name: 'amiDescription',
-										message: 'AMI Description'
+										message: 'AMI Description:'
 									}
 								];
 								if (startingMin >= 2) {
