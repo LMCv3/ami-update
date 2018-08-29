@@ -192,15 +192,16 @@ async function scaleToTwo(asGroup){
 	await autoscaling.updateAutoScalingGroup({
 		AutoScalingGroupName: asGroup.AutoScalingGroupName,
 		MinSize: 2
-	}, function (err, data) {
+	}, async function (err, data) {
 		if (err) {
 			console.log(err);
 			Promise.reject(err);
 			process.exit();
 		} else {
 			console.log('Waiting for Scaling to complete...');
-			waitUntil().interval(1000*30).times(60).condition(function(){
-				if (howManyInService(asGroup.AutoScalingGroupName) >= 2) {
+			waitUntil().interval(1000*30).times(60).condition(async function(){
+				let inService = await howManyInService(asGroup.AutoScalingGroupName);
+				if (inService >= 2) {
 					return true;
 				} else {
 					return false;
@@ -211,7 +212,6 @@ async function scaleToTwo(asGroup){
 			});
 		}
 	});
-	return Promise.resolve(true);
 }
 /**
  * Checks an AutoScaling Group's instances and returns how many are "in service"
@@ -221,7 +221,7 @@ async function scaleToTwo(asGroup){
 async function howManyInService(asGroup){
 	console.log('checking ' + asGroup);
 	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
-	return await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
+	return autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
 		if (err) return Promise.reject(err);
 		const dataset = data.AutoScalingGroups[0].Instances;
 		let num = [];
