@@ -85,7 +85,7 @@ if (!program.region){
 									{
 										type: 'input',
 										name: 'newLaunchConfig',
-										message: 'Launch Config Name (previous: ' + oldLaunchConfig + '):'
+										message: 'Target Group Name (previous: ' + oldLaunchConfig + '):'
 									},
 									{
 										type: 'input',
@@ -223,7 +223,8 @@ async function scaleToTwo(asGroup){
 async function howManyInService(asGroup){
 	console.log('checking ' + asGroup);
 	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
-	return autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
+	let inService = 0;
+	await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
 		if (err) return Promise.reject(err);
 		const dataset = data.AutoScalingGroups[0].Instances;
 		let num = [];
@@ -234,8 +235,10 @@ async function howManyInService(asGroup){
 			}
 		}
 		console.log('Found '+ num.length+' InService instances');
+		inService = num.length;
 		return Promise.resolve(num.length);
 	});
+	return Promise.resolve(inService);
 }
 // Scale up, if needed
 // Maybe apt-get update && apt-get upgrade?
