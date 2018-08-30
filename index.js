@@ -219,13 +219,15 @@ async function scaleToTwo(asGroup){
 	
 	console.log('Scaling '+ asGroup.AutoScalingGroupName + ' to 2...');
 	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
-	var desired = await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
+	var desired = 0;
+	await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
 		if (err) {
 			console.error(err);
 			Promise.reject(err);
 			process.exit();
 		} else {
-			return Promise.resolve(data.AutoScalingGroups[0].DesiredCapacity);
+			desired = data.AutoScalingGroups[0].DesiredCapacity;
+			return Promise.resolve(true);
 		}
 	});
 	if (desired < 2){
