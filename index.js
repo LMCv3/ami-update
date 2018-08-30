@@ -141,6 +141,39 @@ if (!program.region){
 											// wait until instances with LifecycleState = InService are at least 2 before proceeding
 											await scaleToTwo(data.AutoScalingGroups[0]);
 										}
+										var imgParams = {
+											BlockDeviceMappings: [
+												{
+													DeviceName: "/dev/xvda",
+													Ebs: {
+														VolumeSize: 8
+													}
+												}
+											],
+											Name: newAMIname,
+											Description: newAMIdescription,
+											InstanceId: AMImaster,
+											NoReboot: false
+										}
+										console.log('Creating image from ' + AMImaster);
+										ec2.createImage(imgParams, function(err, data) {
+											if (err) {
+												console.error(err, err.stack);
+												Process.exit();
+											} else {
+												let newAMI = data.ImageId;
+												console.log('New Image ID: ' + newAMI);
+												let launchConfigParams = {
+													ImageId: newAMI,
+													InstanceType
+												}
+												// Make a Launch Config
+												// Swap the Launch Config in the AutoScaling Group
+												// Wait for image to finish
+												// Shut down old images, one at a time
+												// (if applicable) drop minsize back down to original value
+											}
+										})
 									});
 								});
 								// (Be sure to tag "client" on both AMI and Snapshot)
