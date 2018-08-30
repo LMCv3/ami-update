@@ -179,7 +179,7 @@ if (!program.region){
 															UserData: launchConfig.UserData
 														}
 														console.log('Creating Launch Config...');
-														autoscaling.CreateLaunchConfiguration(launchConfigParams, function(err, data){
+														autoscaling.createLaunchConfiguration(launchConfigParams, function(err, data){
 															if (err) {
 																console.error(err, err.stack);
 																Process.exit();
