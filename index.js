@@ -85,7 +85,7 @@ if (!program.region){
 									{
 										type: 'input',
 										name: 'newLaunchConfig',
-										message: 'Target Group Name (previous: ' + oldLaunchConfig + '):'
+										message: 'Launch Config Name (previous: ' + oldLaunchConfig + '):'
 									},
 									{
 										type: 'input',
