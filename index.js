@@ -85,7 +85,7 @@ if (!program.region){
 									{
 										type: 'input',
 										name: 'newLaunchConfig',
-										message: 'Target Group Name (previous: ' + oldLaunchConfig + '):'
+										message: 'Launch Config Name (previous: ' + oldLaunchConfig + '):'
 									},
 									{
 										type: 'input',
@@ -163,11 +163,32 @@ if (!program.region){
 											} else {
 												let newAMI = data.ImageId;
 												console.log('New Image ID: ' + newAMI);
-												let launchConfigParams = {
-													ImageId: newAMI,
-													InstanceType
-												}
-												// Make a Launch Config
+												autoscaling.describeLaunchConfigurations({LaunchConfigurationNames: [ oldLaunchConfig ]}, function(err, data){
+													if (err) {
+														console.error(err, err.stack);
+														Process.exit();
+													} else {
+														let launchConfig = data.LaunchConfigurations[0];
+														let launchConfigParams = {
+															LaunchConfigurationName: newLaunchConfig,
+															ImageId: newAMI,
+															BlockDeviceMappings: launchConfig.BlockDeviceMappings,
+															InstanceType: launchConfig.InstanceType,
+															KeyName: launchConfig.KeyName,
+															SecurityGroups: launchConfig.SecurityGroups,
+															UserData: launchConfig.UserData
+														}
+														console.log('Creating Launch Config...');
+														autoscaling.CreateLaunchConfiguration(launchConfigParams, function(err, data){
+															if (err) {
+																console.error(err, err.stack);
+																Process.exit();
+															} else {
+																console.log('Created ', data);
+															}
+														})
+													}
+												})
 												// Swap the Launch Config in the AutoScaling Group
 												// Wait for image to finish
 												// Shut down old images, one at a time
@@ -273,10 +294,6 @@ async function howManyInService(asGroup){
 	});
 	return Promise.resolve(inService);
 }
-// Scale up, if needed
-// Maybe apt-get update && apt-get upgrade?
-// Make the AMI
-// Make the Launch Config
 // Swap out the Launch Config on the AS Group
 // Once the AMI is finished
 // Clear out servers until all servers are from the new AMI
