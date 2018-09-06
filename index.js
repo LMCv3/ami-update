@@ -288,22 +288,22 @@ async function scaleToTwo(asGroup){
 async function howManyInService(asGroup){
 	console.log('checking ' + asGroup);
 	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
-	let inService = 0;
-	await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
-		if (err) return Promise.reject(err);
-		const dataset = data.AutoScalingGroups[0].Instances;
-		let num = [];
-		console.log(dataset);
-		for (const instance of dataset) {
-			if (instance.LifecycleState == 'InService') {
-				num.push(instance);
+	return new Promise(function(resolve,reject){
+		autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup]}, async function (err, data) {
+			if (err) reject(err);
+			const dataset = data.AutoScalingGroups[0].Instances;
+			let num = [];
+			console.log(dataset);
+			for (const instance of dataset) {
+				if (instance.LifecycleState == 'InService') {
+					num.push(instance);
+				}
 			}
-		}
-		console.log('Found '+ num.length+' InService instances');
-		inService = num.length;
-		return Promise.resolve(num.length);
+			console.log('Found '+ num.length+' InService instances');
+			inService = num.length;
+			resolve(num.length);
+		});
 	});
-	return Promise.resolve(inService);
 }
 // Swap out the Launch Config on the AS Group
 // Once the AMI is finished
