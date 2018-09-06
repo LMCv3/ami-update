@@ -220,56 +220,65 @@ async function scaleToTwo(asGroup){
 	console.log('Scaling '+ asGroup.AutoScalingGroupName + ' to 2...');
 	const autoscaling = new AWS.AutoScaling({region: region, apiVersion: '2011-01-01'});
 	var desired = 0;
-	await autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, async function (err, data) {
-		if (err) {
-			console.error(err);
-			Promise.reject(err);
-			process.exit();
-		} else {
-			desired = data.AutoScalingGroups[0].DesiredCapacity;
-			return Promise.resolve(true);
-		}
-	});
-	if (desired < 2){
-		console.log('Increasing Desired Capacity to 2...');
-		await autoscaling.setDesiredCapacity({
-			AutoScalingGroupName: asGroup.AutoScalingGroupName,
-			DesiredCapacity: 2,
-			HonorCooldown: false
-		}, async function(err, data) {
+	return new Promise(function(resolve,reject){
+		autoscaling.describeAutoScalingGroups({AutoScalingGroupNames: [asGroup.AutoScalingGroupName]}, function (err, data) {
 			if (err) {
 				console.error(err);
-				Promise.reject(err);
+				reject(err);
 				process.exit();
 			} else {
-				Promise.resolve(true);
+				desired = data.AutoScalingGroups[0].DesiredCapacity;
+				return resolve(desired);
 			}
 		});
-	}
-	console.log('Increasing MinSize to 2...');
-	await autoscaling.updateAutoScalingGroup({
-		AutoScalingGroupName: asGroup.AutoScalingGroupName,
-		MinSize: 2
-	}, async function (err, data) {
-		if (err) {
-			console.log(err);
-			Promise.reject(err);
-			process.exit();
-		} else {
-			console.log('Waiting for Scaling to complete...');
-			waitUntil().interval(1000*30).times(60).condition(async function(){
-				let inService = await howManyInService(asGroup.AutoScalingGroupName);
-				if (inService >= 2) {
-					return true;
+	}).then(function(result){
+		if (result < 2){
+			console.log('Increasing Desired Capacity to 2...');
+			autoscaling.setDesiredCapacity({
+				AutoScalingGroupName: asGroup.AutoScalingGroupName,
+				DesiredCapacity: 2,
+				HonorCooldown: false
+			}, function(err, data) {
+				if (err) {
+					console.error(err);
+					reject(err);
+					process.exit();
 				} else {
-					return false;
+					resolve(true);
 				}
-			}).done(function(result){
-				console.log(asGroup.AutoScalingGroupName + ' now has at least 2 instances in service.');
-				Promise.resolve(true);
 			});
 		}
-	});
+	}).then(function(result){
+		console.log('Increasing MinSize to 2...');
+		autoscaling.updateAutoScalingGroup({
+			AutoScalingGroupName: asGroup.AutoScalingGroupName,
+			MinSize: 2
+		}, function (err, data) {
+			console.log('Line 264');
+			if (err) {
+				console.log(err);
+				reject(err);
+				process.exit();
+			} else {
+				console.log('Waiting for Scaling to complete...');
+				waitUntil().interval(1000*30).times(60).condition(function(){
+					console.log('Checking...');
+					let inService = await howManyInService(asGroup.AutoScalingGroupName);
+					if (inService >= 2) {
+						console.log('Yep ',inService);
+						return true;
+					} else {
+						console.log("Nope ",inService);
+						return false;
+					}
+				}).done(function(result){
+					console.log(asGroup.AutoScalingGroupName + ' now has at least 2 instances in service.');
+					resolve(true);
+				});
+			}
+		});		
+	})
+	
 }
 /**
  * Checks an AutoScaling Group's instances and returns how many are "in service"
