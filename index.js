@@ -115,6 +115,7 @@ if (!program.region){
 									const newLaunchConfig = answers.newLaunchConfig;
 									const newAMIname = answers.newAMI;
 									const newAMIdescription = answers.amiDescription;
+									const asGroupName = data.AutoScalingGroups[0].AutoScalingGroupName;
 									if (startingMin < 2) {
 										AMImaster = instances[0].InstanceId
 									} else {
@@ -123,7 +124,7 @@ if (!program.region){
 									console.log('Ready to reimage by:');
 									console.log('Make new AMI ('+ newAMIname+', '+newAMIdescription+') of instance ' + AMImaster);
 									console.log('Make a new Launch Config ('+newLaunchConfig+') from old config '+oldLaunchConfig);
-									console.log('Then updating AutoScalingGroup ' + data.AutoScalingGroups[0].AutoScalingGroupName);
+									console.log('Then updating AutoScalingGroup ' + asGroupName);
 									console.log('And shutting down old images');
 									inquirer.prompt([{
 										type: 'confirm',
@@ -179,11 +180,24 @@ if (!program.region){
 																Process.exit();
 															} else {
 																console.log('Created ', data);
+																// Swap the Launch Config in the AutoScaling Group
+																let asParams = {
+																	AutoScalingGroupName: asGroupName,
+																	LaunchConfigurationName: data
+																}
+																autoscaling.updateAutoScalingGroup(asParams, async function(err,data){
+																	if (err) {
+																		console.error(err, err.stack);
+																		Process.exit();
+																	} else {
+																		console.log('Updated AutoScaling Group ' + asGroupName + ' Successfully' );
+																		await 
+																	}
+																})
 															}
 														})
 													}
 												})
-												// Swap the Launch Config in the AutoScaling Group
 												// Wait for image to finish
 												// Shut down old images, one at a time
 												// (if applicable) drop minsize back down to original value
