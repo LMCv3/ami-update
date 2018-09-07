@@ -168,18 +168,12 @@ if (!program.region){
 														console.error(err, err.stack);
 														Process.exit();
 													} else {
+														// Build new Launch config from old Launch Config Params
 														let launchConfig = data.LaunchConfigurations[0];
-														let launchConfigParams = {
-															LaunchConfigurationName: newLaunchConfig,
-															ImageId: newAMI,
-															BlockDeviceMappings: launchConfig.BlockDeviceMappings,
-															InstanceType: launchConfig.InstanceType,
-															KeyName: launchConfig.KeyName,
-															SecurityGroups: launchConfig.SecurityGroups,
-															UserData: launchConfig.UserData
-														}
+														launchConfig.LaunchConfigurationName = newLaunchConfig;
+														launchConfig.ImageId = newAMI;
 														console.log('Creating Launch Config...');
-														autoscaling.createLaunchConfiguration(launchConfigParams, function(err, data){
+														autoscaling.createLaunchConfiguration(launchConfig, function(err, data){
 															if (err) {
 																console.error(err, err.stack);
 																Process.exit();
