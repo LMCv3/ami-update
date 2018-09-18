@@ -134,7 +134,7 @@ if (!program.region){
 									}]).then(async answers => {
 										if (!answers.readySetGO){
 											console.log('Exiting...');
-											Process.exit();
+											process.exit();
 										}
 										if (startingMin < 2) {
 											console.log('Adding scale...');
@@ -160,14 +160,14 @@ if (!program.region){
 										ec2.createImage(imgParams, function(err, data) {
 											if (err) {
 												console.error(err, err.stack);
-												Process.exit();
+												process.exit();
 											} else {
 												let newAMI = data.ImageId;
 												console.log('New Image ID: ' + newAMI);
 												autoscaling.describeLaunchConfigurations({LaunchConfigurationNames: [ oldLaunchConfig ]}, function(err, data){
 													if (err) {
 														console.error(err, err.stack);
-														Process.exit();
+														process.exit();
 													} else {
 														// Build new Launch config from old Launch Config Params
 														let launchConfig = data.LaunchConfigurations[0];
@@ -177,7 +177,7 @@ if (!program.region){
 														autoscaling.createLaunchConfiguration(launchConfig, function(err, data){
 															if (err) {
 																console.error(err, err.stack);
-																Process.exit();
+																process.exit();
 															} else {
 																console.log('Created ', data);
 																// Swap the Launch Config in the AutoScaling Group
@@ -188,10 +188,9 @@ if (!program.region){
 																autoscaling.updateAutoScalingGroup(asParams, async function(err,data){
 																	if (err) {
 																		console.error(err, err.stack);
-																		Process.exit();
+																		process.exit();
 																	} else {
 																		console.log('Updated AutoScaling Group ' + asGroupName + ' Successfully' );
-																		await 
 																	}
 																})
 															}
