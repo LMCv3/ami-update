@@ -90,7 +90,7 @@ if (!program.region){
 									{
 										type: 'input',
 										name: 'newAMI',
-										message: 'AMI name (previous: ' + '):'
+										message: 'AMI name:'
 									},
 									{
 										type: 'input',
